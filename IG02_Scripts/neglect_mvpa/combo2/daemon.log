@@ -1,0 +1,7 @@
+Daemon started at 13:40:45 with pid 11555
+To kill this process type "kill 11555" at the head node command line
+Daemon has been running for 0.330914141933 hours
+Daemon has been running for 2.37667658501 hours
+Daemon has been running for 2.77125976225 hours
+Daemon has been running for 3.12122275054 hours
+rm: cannot remove `*.job': No such file or directory

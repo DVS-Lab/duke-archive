@@ -1,0 +1,38 @@
+#!/bin/bash
+#FORMAT IS ES ID Funcdir
+
+mkdir -p ~/net/goldman/data/NDRC/Cpram.02/Analysis/eventstats_FSL/$1
+
+FUNCDIR=~/net/goldman/data/NDRC/Cpram.02/Data/Func/$3_$1
+  QADIR=$FUNCDIR/QA
+BEHAVDIR=~/net/goldman/data/NDRC/Cpram.02/Data/Behav/$1
+ OUTDIR_FSL=~/net/goldman/data/NDRC/Cpram.02/Analysis/eventstats_FSL/$1
+ 
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_2" $OUTDIR_FSL/run2.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_3" $OUTDIR_FSL/run3.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_4" $OUTDIR_FSL/run4.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_5" $OUTDIR_FSL/run5.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_6" $OUTDIR_FSL/run6.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_7" $OUTDIR_FSL/run7.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_8" $OUTDIR_FSL/run8.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_9" $OUTDIR_FSL/run9.xml
+showplay2xml --overwrite "$BEHAVDIR/pdigm6_$1_$2_10" $OUTDIR_FSL/run10.xml
+
+RUNDIR=~/net/goldman/data/NDRC/Cpram.02/Data/FSL/1st_Level/$4
+ 
+bxh_eventstats --overwrite --optsfromfile ES_opts_FSL_$5 $OUTDIR_FSL/stats\
+ $RUNDIR/run002.feat $OUTDIR_FSL/run2.xml,$QADIR/qa_events_run00$2_02.xml\
+ $RUNDIR/run003.feat $OUTDIR_FSL/run3.xml,$QADIR/qa_events_run00$2_03.xml\
+ $RUNDIR/run004.feat $OUTDIR_FSL/run4.xml,$QADIR/qa_events_run00$2_04.xml\
+ $RUNDIR/run005.feat $OUTDIR_FSL/run5.xml,$QADIR/qa_events_run00$2_05.xml\
+ $RUNDIR/run006.feat $OUTDIR_FSL/run6.xml,$QADIR/qa_events_run00$2_06.xml\
+ $RUNDIR/run007.feat $OUTDIR_FSL/run7.xml,$QADIR/qa_events_run00$2_07.xml\
+ $RUNDIR/run008.feat $OUTDIR_FSL/run8.xml,$QADIR/qa_events_run00$2_08.xml\
+ $RUNDIR/run009.feat $OUTDIR_FSL/run9.xml,$QADIR/qa_events_run00$2_09.xml\
+ $RUNDIR/run010.feat $OUTDIR_FSL/run10.xml,$QADIR/qa_events_run00$2_10.xml
+ 
+# puts into normalized space
+bxh_eventstats_standardize --refvol standard $OUTDIR_FSL/stats
+
+echo "processing script done"
+exit $?

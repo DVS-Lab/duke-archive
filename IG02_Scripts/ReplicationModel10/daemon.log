@@ -1,0 +1,4 @@
+Daemon started at 12:49:41 with pid 29211
+To kill this process type "kill 29211" at the head node command line
+./submit_02_L3_ALL_n217.py:185: DeprecationWarning: os.popen2 is deprecated.  Use the subprocess module.
+  dummy, f = os.popen2(cmd)

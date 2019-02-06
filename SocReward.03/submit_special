@@ -1,0 +1,76 @@
+#!/bin/sh
+
+SUBJ=$1
+REST=$2
+# 
+# for go in 1 2; do
+# 	for SMOOTH in 6 0; do
+# 		#for SUBJ in ${INPUT}; do
+# 		
+# 			#set -- $SUBJ
+# 			#SUBJ=$1
+# 			#REST=$2
+# 
+# 
+# 			for RUN in 1 2; do
+# 				qsub -v EXPERIMENT=SocReward.03 prestats_1run.sh ${SUBJ} ${RUN} ${SMOOTH} ${go} "Active"
+# 			done
+# 
+# 			for RUN in `seq $REST`; do
+# 				qsub -v EXPERIMENT=SocReward.03 prestats_1run.sh ${SUBJ} ${RUN} ${SMOOTH} ${go} "Resting"
+# 			done
+# 
+# 			qstat > waiting
+# 			NUM=`grep -c "qw" waiting`
+# 			while [ $NUM -gt 5 ]; do 
+# 				sleep 5
+# 				qstat > waiting
+# 				NUM=`grep -c "qw" waiting`
+# 			done
+# 
+# 		#done
+# 	done
+# 	echo "sleeping for 5 minutes at `date`"
+# 	sleep 5m 
+# done			
+# 
+# qstat > waiting
+# NUM=`grep -c "prestats" waiting`
+# while [ $NUM -gt 0 ]; do 
+# 	sleep 10
+# 	echo "waiting for prestats to finish at `date`...."
+# 	qstat > waiting
+# 	NUM=`grep -c "prestats" waiting`
+# done
+# 
+
+for go in 2; do
+	for SMOOTH in 6 0; do
+		#for SUBJ in ${INPUT}; do
+		
+			#set -- $SUBJ
+			#SUBJ=$1
+			#REST=$2
+
+
+			for RUN in 1 2; do
+				qsub -v EXPERIMENT=SocReward.03 melodic_1run.sh ${SUBJ} ${RUN} ${SMOOTH} ${go} "Active"
+			done
+
+			for RUN in `seq $REST`; do
+				qsub -v EXPERIMENT=SocReward.03 melodic_1run.sh ${SUBJ} ${RUN} ${SMOOTH} ${go} "Resting"
+			done
+
+			qstat > waiting
+			NUM=`grep -c "qw" waiting`
+			while [ $NUM -gt 5 ]; do 
+				sleep 5
+				qstat > waiting
+				NUM=`grep -c "qw" waiting`
+			done
+
+		#done
+	done
+	echo "sleeping for 5 minutes at `date`"
+	sleep 5m
+done

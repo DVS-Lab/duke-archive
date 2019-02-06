@@ -1,0 +1,47 @@
+overwrite
+querylanguage event
+forcetr 1.5
+
+createbrainmask
+brainmaskmethod=threshold
+brainmaskthresh=10%
+
+ptsbefore 2
+ptsafter  8
+
+basestartoffset -2
+baseendoffset    0
+
+querylabel Target
+query "code(31,32,33)"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel TargetCorrect
+query "code(31,32,33) & button2delay > 0"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel Novel
+query "code(21,22,23)"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel NovelCorrect
+query "code(21,22,23) & button4delay > 0"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel Standard
+query "code(11,12,13)"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel Face
+query "code(34)"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+querylabel FaceCorrect
+query "code(34) & button2delay > 0"
+queryepochexclude "volmean_x_indiv > 3 | volmean_y_indiv > 3 | volmean_z_indiv > 3"
+
+tcompare TargetCorrect-NovelCorrect
+tcompare FaceCorrect-NovelCorrect
+tcompare TargetCorrect-FaceCorrect		
+
+template 0,0,0,0.0040,0.3800,0.9824,0.8900,0.5337,0.2000,0.0738,0

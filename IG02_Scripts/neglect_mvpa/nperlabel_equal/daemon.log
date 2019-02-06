@@ -1,0 +1,13 @@
+Daemon started at 13:34:13 with pid 32616
+To kill this process type "kill 32616" at the head node command line
+Daemon has been running for 0.0027906899982 hours
+Daemon has been running for 0.00557985087236 hours
+Daemon has been running for 0.30021279282 hours
+Daemon has been running for 0.378053853644 hours
+Daemon has been running for 0.397522414459 hours
+Daemon has been running for 0.650470198062 hours
+Daemon has been running for 0.77000862115 hours
+Daemon has been running for 0.889541148345 hours
+Daemon has been running for 0.959045192268 hours
+Daemon has been running for 1.14529202422 hours
+rm: cannot remove `*.job': No such file or directory

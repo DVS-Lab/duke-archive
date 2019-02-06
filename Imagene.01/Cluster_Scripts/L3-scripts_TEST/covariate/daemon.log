@@ -1,0 +1,10 @@
+Daemon started at 16:26:34 with pid 23763
+To kill this process type "kill 23763" at the head node command line
+Traceback (most recent call last):
+  File "/home/smith/Imagene.01/Cluster_Scripts/L3-scripts/covariate/submit_L3_m8_TEST.py", line 146, in ?
+    cname = cnames[cope-1]
+IndexError: list index out of range
+Daemon has been running for 2.69309663806 hours
+Daemon has been running for 2.2470587547 hours
+Daemon has been running for 2.55358977113 hours
+Daemon has been running for 3.12759560386 hours

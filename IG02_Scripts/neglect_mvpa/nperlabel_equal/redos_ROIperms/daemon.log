@@ -1,0 +1,4 @@
+Daemon started at 12:20:40 with pid 922
+To kill this process type "kill 922" at the head node command line
+Daemon has been running for 0.000283823013306 hours
+rm: cannot remove `*.job': No such file or directory

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+kill $1
+rm -rf $1
+rm -rf daemon.log

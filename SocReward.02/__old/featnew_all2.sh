@@ -1,0 +1,15 @@
+#!/bin/sh
+
+SUBJ=$1
+
+#for SUBJ in 32953 32958 32976 32984 33035 33045 33064 33082 33288 33302 33402 33456 33642 33669 33732 33746 33754 33757 33771 33784; do
+
+	for RUN in 3 4 5 6; do
+	qsub -v EXPERIMENT=SocReward.01 featnew_1run.sh ${SUBJ} ${RUN}
+	#sleep 2
+	done
+
+#done
+
+
+

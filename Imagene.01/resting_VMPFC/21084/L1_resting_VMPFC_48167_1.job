@@ -1,0 +1,181 @@
+#!/bin/sh
+
+# This is a BIAC template script for jobs on the cluster
+# You have to provide the Experiment on command line  
+# when you submit the job the cluster.
+#
+# >  qsub -v EXPERIMENT=Dummy.01  script.sh args
+#
+# There are 2 USER sections 
+#  1. USER DIRECTIVE: If you want mail notifications when
+#     your job is completed or fails you need to set the 
+#     correct email address.
+#		   
+#  2. USER SCRIPT: Add the user script in this section.
+#     Within this section you can access your experiment 
+#     folder using $EXPERIMENT. All paths are relative to this variable
+#     eg: $EXPERIMENT/Data $EXPERIMENT/Analysis	
+#     By default all terminal output is routed to the " Analysis "
+#     folder under the Experiment directory i.e. $EXPERIMENT/Analysis
+#     To change this path, set the OUTDIR variable in this section
+#     to another location under your experiment folder
+#     eg: OUTDIR=$EXPERIMENT/Analysis/GridOut 	
+#     By default on successful completion the job will return 0
+#     If you need to set another return code, set the RETURNCODE
+#     variable in this section. To avoid conflict with system return 
+#     codes, set a RETURNCODE higher than 100.
+#     eg: RETURNCODE=110
+#     Arguments to the USER SCRIPT are accessible in the usual fashion
+#     eg:  $1 $2 $3
+# The remaining sections are setup related and don't require
+# modifications for most scripts. They are critical for access
+# to your data  	 
+
+# --- BEGIN GLOBAL DIRECTIVE -- 
+#$ -S /bin/sh
+#$ -o $HOME/$JOB_NAME.$JOB_ID.out
+#$ -e $HOME/$JOB_NAME.$JOB_ID.out
+# #$ -m ea
+# -- END GLOBAL DIRECTIVE -- 
+
+# -- BEGIN PRE-USER --
+#Name of experiment whose data you want to access 
+EXPERIMENT=${EXPERIMENT:?"Experiment not provided"}
+
+source /etc/biac_sge.sh
+
+EXPERIMENT=`biacmount $EXPERIMENT`
+EXPERIMENT=${EXPERIMENT:?"Returned NULL Experiment"}
+
+if [ $EXPERIMENT = "ERROR" ]
+then
+	exit 32
+else 
+#Timestamp
+echo "----JOB [$JOB_NAME.$JOB_ID] START [`date`] on HOST [$HOSTNAME]----" 
+# -- END PRE-USER --
+# **********************************************************
+
+# -- BEGIN USER DIRECTIVE --
+# Send notifications to the following address
+# #$ -M smith@biac.duke.edu
+# -- END USER DIRECTIVE --
+
+# -- BEGIN USER SCRIPT --
+# User script goes here
+
+
+FSLDIR=/usr/local/fsl-4.1.4-centos4_64
+export FSLDIR
+source $FSLDIR/etc/fslconf/fsl.sh
+#
+SUBJ=48167
+GO=1
+
+#data location and other variables
+FSLDATADIR2=$EXPERIMENT/Analysis/TaskData/${SUBJ}/Resting/PreStatsOnly/Smooth_6mm
+
+ANAT=$EXPERIMENT/Analysis/TaskData/${SUBJ}/${SUBJ}_anat_brain
+DATA=${FSLDATADIR2}/run1.feat/new_filtered_func_data.nii.gz
+
+MAINOUTPUT=$EXPERIMENT/Analysis/Resting_VMPFC/${SUBJ}
+mkdir -p $MAINOUTPUT
+OUTPUT=${MAINOUTPUT}/${SUBJ}_VMPFC_NL_v3_6DOF_new
+
+OUTDIR=$MAINOUTPUT/Logs
+mkdir -p $OUTDIR
+
+
+if [ $GO -eq 1 ]; then
+	rm -rf ${OUTPUT}.feat
+fi
+
+
+#make regressors
+FSLDATADIR=${MAINOUTPUT}/${SUBJ}_VMPFC_NL_v3_6DOF.feat
+
+#make aVMPFC
+GLOBAL=${FSLDATADIR}/global_filtered.txt
+AVMPFC=${FSLDATADIR}/aVMPFC_filtered.txt
+REF=${FSLDATADIR}/reg/example_func.nii.gz
+MATRIX=${FSLDATADIR}/reg/standard2example_func.mat
+FLIRTOUTPUT=${FSLDATADIR}/aVMPFC_native
+FLIRTINPUT=$EXPERIMENT/Analysis/Resting_VMPFC/ROIs/aVMPFC_5mm.nii.gz
+WB=${FSLDATADIR}/mask.nii.gz
+if [ ! -e $AVMPFC ]; then
+	flirt -in ${FLIRTINPUT} -ref ${REF} -applyxfm -init ${MATRIX} -out ${FLIRTOUTPUT}
+	fslmaths ${FLIRTOUTPUT} -thr 0.5 -bin ${FLIRTOUTPUT}
+fi
+fslmeants -i ${DATA} -o ${AVMPFC} -m ${FLIRTOUTPUT}
+fslmeants -i ${DATA} -o ${GLOBAL} -m ${WB}
+
+#make pVMPFC
+PVMPFC=${FSLDATADIR}/pVMPFC_filtered.txt
+REF=${FSLDATADIR}/reg/example_func.nii.gz
+MATRIX=${FSLDATADIR}/reg/standard2example_func.mat
+FLIRTOUTPUT=${FSLDATADIR}/pVMPFC_native
+FLIRTINPUT=$EXPERIMENT/Analysis/Resting_VMPFC/ROIs/pVMPFC_5mm.nii.gz
+if [ ! -e $PVMPFC ]; then
+	flirt -in ${FLIRTINPUT} -ref ${REF} -applyxfm -init ${MATRIX} -out ${FLIRTOUTPUT}
+	fslmaths ${FLIRTOUTPUT} -thr 0.5 -bin ${FLIRTOUTPUT}
+fi
+fslmeants -i ${DATA} -o ${PVMPFC} -m ${FLIRTOUTPUT}
+
+for N in 1 2 3 4 5; do
+	CHECKFILE=${OUTPUT}.feat/cluster_mask_zstat${N}.nii.gz
+	if [ -e $CHECKFILE ]; then
+		echo "done already"
+	else
+		echo "fail"
+		rm -rf ${OUTPUT}.feat
+	fi
+done
+
+
+#run analyses
+CONFOUNDEVS=${FSLDATADIR2}/run1.feat/bad_timepoints.txt
+if [ -e $CONFOUNDEVS ]; then
+	TEMPLATE=$EXPERIMENT/Analysis/Resting_VMPFC/Templates/resting_VMPFC_badTRs_NL.fsf
+	sed -e 's@DATA@'$DATA'@g' \
+	-e 's@ANAT@'$ANAT'@g' \
+	-e 's@OUTPUT@'$OUTPUT'@g' \
+	-e 's@GLOBAL@'$GLOBAL'@g' \
+	-e 's@AVMPFC@'$AVMPFC'@g' \
+	-e 's@PVMPFC@'$PVMPFC'@g' \
+	-e 's@CONFOUNDEVS@'$CONFOUNDEVS'@g' \
+	<$TEMPLATE> ${MAINOUTPUT}/${SUBJ}_model.fsf
+else
+	TEMPLATE=$EXPERIMENT/Analysis/Resting_VMPFC/Templates/resting_VMPFC_NL.fsf
+	sed -e 's@DATA@'$DATA'@g' \
+	-e 's@ANAT@'$ANAT'@g' \
+	-e 's@OUTPUT@'$OUTPUT'@g' \
+	-e 's@GLOBAL@'$GLOBAL'@g' \
+	-e 's@AVMPFC@'$AVMPFC'@g' \
+	-e 's@PVMPFC@'$PVMPFC'@g' \
+	<$TEMPLATE> ${MAINOUTPUT}/${SUBJ}_model.fsf
+fi
+
+#run the newly created fsf files
+if [ -d $OUTPUT.feat ]; then
+	echo "$OUTPUT.feat exists! skipping to the next one"
+else
+	$FSLDIR/bin/feat ${MAINOUTPUT}/${SUBJ}_model.fsf
+fi
+
+# clean up unwanted files
+cd ${OUTPUT}.feat
+rm -f filtered_func_data.nii.gz
+rm -f stats/res4d.nii.gz
+
+
+# -- END USER SCRIPT -- #
+
+# **********************************************************
+# -- BEGIN POST-USER -- 
+echo "----JOB [$JOB_NAME.$JOB_ID] STOP [`date`]----" 
+#OUTDIR=${OUTDIR:-$EXPERIMENT/Analysis} 
+mv $HOME/$JOB_NAME.$JOB_ID.out $OUTDIR/$JOB_NAME.$JOB_ID.out	 
+RETURNCODE=${RETURNCODE:-0}
+exit $RETURNCODE
+fi
+# -- END POST USER-- 

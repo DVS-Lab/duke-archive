@@ -1,0 +1,76 @@
+#!/bin/sh
+
+COUNTER=0
+LOOP=0
+
+JOBS=125280
+JOBS_LEFT=125280
+
+for go in 1 2; do
+
+	for SESSION in "RW"; do
+		
+		for SMOOTH in 0 8; do
+		
+			for SUBJ in RASD18 RASD19 RASD20 RASD21 RASD22 RASD23 RASD24 RASD25 RASD26 RASD29 RASD30 RASD31 RASD32 RASD33 RASD34; do
+
+				cd ROI_temp
+				rm -rf *
+				cd ..
+
+				for RUN in 1 2 3 4 5 6; do
+
+					for ROI in `seq 116`; do
+	
+						CP_CMD="cp feat_d5_1run.sh ROI_temp/JobsLeft_${JOBS_LEFT}"
+						eval ${CP_CMD}
+						qsub -v EXPERIMENT=Finance.01 ROI_temp/JobsLeft_${JOBS_LEFT} ${SUBJ} ${RUN} ${SMOOTH} ${SESSION} ${go} ${ROI}
+						let "JOBS_LEFT=$JOBS_LEFT-1"
+
+
+						#CP_CMD="cp feat_d6_1run.sh ROI_temp/JobsLeft_${JOBS_LEFT}"
+						#eval ${CP_CMD}
+						#qsub -v EXPERIMENT=Finance.01 ROI_temp/JobsLeft_${JOBS_LEFT} ${SUBJ} ${RUN} ${SMOOTH} ${SESSION} ${go} ${ROI}
+						#let "JOBS_LEFT=$JOBS_LEFT-1"
+
+
+						CP_CMD="cp feat_d7_1run.sh ROI_temp/JobsLeft_${JOBS_LEFT}"
+						eval ${CP_CMD}
+						qsub -v EXPERIMENT=Finance.01 ROI_temp/JobsLeft_${JOBS_LEFT} ${SUBJ} ${RUN} ${SMOOTH} ${SESSION} ${go} ${ROI}
+						let "JOBS_LEFT=$JOBS_LEFT-1"
+
+
+						#CP_CMD="cp feat_d8_1run.sh ROI_temp/JobsLeft_${JOBS_LEFT}"
+						#eval ${CP_CMD}
+						#qsub -v EXPERIMENT=Finance.01 ROI_temp/JobsLeft_${JOBS_LEFT} ${SUBJ} ${RUN} ${SMOOTH} ${SESSION} ${go} ${ROI}
+						#let "JOBS_LEFT=$JOBS_LEFT-1"
+
+
+						CP_CMD="cp feat_d9_1run.sh ROI_temp/JobsLeft_${JOBS_LEFT}"
+						eval ${CP_CMD}
+						qsub -v EXPERIMENT=Finance.01 ROI_temp/JobsLeft_${JOBS_LEFT} ${SUBJ} ${RUN} ${SMOOTH} ${SESSION} ${go} ${ROI}
+						let "JOBS_LEFT=$JOBS_LEFT-1"
+
+
+						qstat > testfile2
+						NUM=`grep -c "qw" testfile2`
+						while [ $NUM -gt 10 ]; do 
+						sleep 2
+						qstat > testfile2
+						NUM=`grep -c "qw" testfile2`
+						done
+				
+					done
+
+				done
+				
+			done
+	
+		done
+	
+	done
+
+done
+
+rm -f testfile2
+

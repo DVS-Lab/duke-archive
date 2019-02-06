@@ -1,0 +1,363 @@
+#!/bin/sh
+
+# This is a BIAC template script for jobs on the cluster
+# You have to provide the Experiment on command line  
+# when you submit the job the cluster.
+#
+# >  qsub -v EXPERIMENT=Dummy.01  script.sh args
+#
+# There are 2 USER sections 
+#  1. USER DIRECTIVE: If you want mail notifications when
+#     your job is completed or fails you need to set the 
+#     correct email address.
+#		   
+#  2. USER SCRIPT: Add the user script in this section.
+#     Within this section you can access your experiment 
+#     folder using $EXPERIMENT. All paths are relative to this variable
+#     eg: $EXPERIMENT/Data $EXPERIMENT/Analysis	
+#     By default all terminal output is routed to the " Analysis "
+#     folder under the Experiment directory i.e. $EXPERIMENT/Analysis
+#     To change this path, set the OUTDIR variable in this section
+#     to another location under your experiment folder
+#     eg: OUTDIR=$EXPERIMENT/Analysis/GridOut 	
+#     By default on successful completion the job will return 0
+#     If you need to set another return code, set the RETURNCODE
+#     variable in this section. To avoid conflict with system return 
+#     codes, set a RETURNCODE higher than 100.
+#     eg: RETURNCODE=110
+#     Arguments to the USER SCRIPT are accessible in the usual fashion
+#     eg:  $1 $2 $3
+# The remaining sections are setup related and don't require
+# modifications for most scripts. They are critical for access
+# to your data  	 
+
+# --- BEGIN GLOBAL DIRECTIVE -- 
+#$ -S /bin/sh
+#$ -o $HOME/$JOB_NAME.$JOB_ID.out
+#$ -e $HOME/$JOB_NAME.$JOB_ID.out
+# #$ -m ea
+# -- END GLOBAL DIRECTIVE -- 
+
+# -- BEGIN PRE-USER --
+#Name of experiment whose data you want to access 
+EXPERIMENT=${EXPERIMENT:?"Experiment not provided"}
+
+source /etc/biac_sge.sh
+
+EXPERIMENT=`biacmount $EXPERIMENT`
+EXPERIMENT=${EXPERIMENT:?"Returned NULL Experiment"}
+
+if [ $EXPERIMENT = "ERROR" ]
+then
+	exit 32
+else 
+#Timestamp
+echo "----JOB [$JOB_NAME.$JOB_ID] START [`date`] on HOST [$HOSTNAME]----" 
+# -- END PRE-USER --
+# **********************************************************
+
+# -- BEGIN USER DIRECTIVE --
+# Send notifications to the following address
+# #$ -M rosa.li@duke.edu
+# -- END USER DIRECTIVE --
+
+# -- BEGIN USER SCRIPT --
+# User script goes here
+
+
+# FSLDIR=/usr/local/fsl-4.1.4-centos4_64
+# export FSLDIR
+# source $FSLDIR/etc/fslconf/fsl.sh
+
+
+COPE=12
+CNAME=char-self
+MODEL=10
+TEMPLATE=L3_n217_cov_linquad_RL_noLapses
+GO=2
+
+
+MAINDIR=${EXPERIMENT}/Analysis/Framing/FSL
+preOUTPUT=${MAINDIR}/Level3_n217_RL/${TEMPLATE}/Model${MODEL}_rerun
+mkdir -p $preOUTPUT
+
+OUTDIR=${preOUTPUT}/logs
+mkdir -p $OUTDIR
+
+
+OUTPUT=${preOUTPUT}/C${COPE}_${CNAME}
+if [ $GO -eq 1 ]; then
+	rm -rf $OUTPUT.gfeat
+fi
+
+N=0
+for SUBJ in 10156 10168 10181 10199 10255 10264 10265 10279 10280 10281 10286 10287 10294 10304 10305 10306 10314 10315 10335 10350 10351 10352 10358 10359 10360 10387 10414 10415 10416 10424 10425 10426 10472 10474 10482 10483 10512 10515 10521 10523 10524 10525 10558 10560 10565 10583 10602 10605 10615 10657 10659 10665 10670 10696 10697 10698 10699 10705 10706 10707 10746 10747 10749 10757 10762 10782 10783 10785 10793 10794 10795 10817 10827 10844 10845 10858 10890 11021 11022 11024 11029 11058 11059 11065 11066 11067 11171 11176 11196 11209 11210 11212 11215 11216 11217 11232 11233 11235 11243 11245 11264 11266 11272 11273 11274 11291 11292 11293 11326 11327 11328 11335 11363 11364 11366 11371 11372 11373 11383 11393 11394 11402 11430 11473 11479 11511 11545 11578 11584 11602 11605 11625 11659 11660 11692 11738 11762 11865 11878 11941 11950 12015 12071 12082 12089 12097 12132 12159 12165 12175 12176 12280 12294 12314 12360 12372 12380 12383 12393 12400 12411 12412 12444 12459 12460 12476 12496 12541 12550 12551 12564 12596 12606 12614 12629 12664 12665 12677 12678 12679 12711 12717 12731 12742 12755 12756 12757 12758 12766 12768 12780 12789 12791 12802 12815 12816 12817 12828 12839 12840 12850 12873 12874 12875 12879 12880 12893 12894 12896 12905 12907 12923 12960 12961 12988 12989 13011; do
+
+	let N=$N+1
+	if [ $SUBJ -eq 10426 ] || [ $SUBJ -eq 10782 ] || [ $SUBJ -eq 11058 ] || [ $SUBJ -eq 11372 ] || [ $SUBJ -eq 11659 ] || [ $SUBJ -eq 11865 ] || [ $SUBJ -eq 11878 ] || [ $SUBJ -eq 12768 ] || [ $SUBJ -eq 12840 ]; then
+	  FILENAME=${MAINDIR}/${SUBJ}/NoLapses_RL/model${MODEL}/run1.feat/stats/cope${COPE}.nii.gz
+	elif [ $SUBJ -eq 12176 ]; then
+	  FILENAME=${MAINDIR}/${SUBJ}/NoLapses_RL/model${MODEL}/run2.feat/stats/cope${COPE}.nii.gz
+	elif [ $SUBJ -eq 10360 ] || [ $SUBJ -eq 10474 ] || [ $SUBJ -eq 12314 ]; then
+	  FILENAME=${MAINDIR}/${SUBJ}/NoLapses_RL/model${MODEL}/run3.feat/stats/cope${COPE}.nii.gz
+	else
+	  FILENAME=${MAINDIR}/${SUBJ}/NoLapses_RL/model${MODEL}.gfeat/cope${COPE}.feat/stats/cope1.nii.gz
+	fi
+	  NN=`printf '%03d' $N` #this pads the numbers with zero
+	  eval INPUT${NN}=${FILENAME}
+
+done
+
+TEMPLATEDIR=${EXPERIMENT}/Analysis/Framing/Templates
+NEWFILE=${preOUTPUT}/${TEMPLATE}_${CNAME} #appending .fsf lower in the script
+cd ${TEMPLATEDIR}
+sed -e 's@OUTPUT@'$OUTPUT'@g' \
+-e 's@INPUT001@'$INPUT001'@g' \
+-e 's@INPUT002@'$INPUT002'@g' \
+-e 's@INPUT003@'$INPUT003'@g' \
+-e 's@INPUT004@'$INPUT004'@g' \
+-e 's@INPUT005@'$INPUT005'@g' \
+-e 's@INPUT006@'$INPUT006'@g' \
+-e 's@INPUT007@'$INPUT007'@g' \
+-e 's@INPUT008@'$INPUT008'@g' \
+-e 's@INPUT009@'$INPUT009'@g' \
+-e 's@INPUT010@'$INPUT010'@g' \
+-e 's@INPUT011@'$INPUT011'@g' \
+-e 's@INPUT012@'$INPUT012'@g' \
+-e 's@INPUT013@'$INPUT013'@g' \
+-e 's@INPUT014@'$INPUT014'@g' \
+-e 's@INPUT015@'$INPUT015'@g' \
+-e 's@INPUT016@'$INPUT016'@g' \
+-e 's@INPUT017@'$INPUT017'@g' \
+-e 's@INPUT018@'$INPUT018'@g' \
+-e 's@INPUT019@'$INPUT019'@g' \
+-e 's@INPUT020@'$INPUT020'@g' \
+-e 's@INPUT021@'$INPUT021'@g' \
+-e 's@INPUT022@'$INPUT022'@g' \
+-e 's@INPUT023@'$INPUT023'@g' \
+-e 's@INPUT024@'$INPUT024'@g' \
+-e 's@INPUT025@'$INPUT025'@g' \
+-e 's@INPUT026@'$INPUT026'@g' \
+-e 's@INPUT027@'$INPUT027'@g' \
+-e 's@INPUT028@'$INPUT028'@g' \
+-e 's@INPUT029@'$INPUT029'@g' \
+-e 's@INPUT030@'$INPUT030'@g' \
+-e 's@INPUT031@'$INPUT031'@g' \
+-e 's@INPUT032@'$INPUT032'@g' \
+-e 's@INPUT033@'$INPUT033'@g' \
+-e 's@INPUT034@'$INPUT034'@g' \
+-e 's@INPUT035@'$INPUT035'@g' \
+-e 's@INPUT036@'$INPUT036'@g' \
+-e 's@INPUT037@'$INPUT037'@g' \
+-e 's@INPUT038@'$INPUT038'@g' \
+-e 's@INPUT039@'$INPUT039'@g' \
+-e 's@INPUT040@'$INPUT040'@g' \
+-e 's@INPUT041@'$INPUT041'@g' \
+-e 's@INPUT042@'$INPUT042'@g' \
+-e 's@INPUT043@'$INPUT043'@g' \
+-e 's@INPUT044@'$INPUT044'@g' \
+-e 's@INPUT045@'$INPUT045'@g' \
+-e 's@INPUT046@'$INPUT046'@g' \
+-e 's@INPUT047@'$INPUT047'@g' \
+-e 's@INPUT048@'$INPUT048'@g' \
+-e 's@INPUT049@'$INPUT049'@g' \
+-e 's@INPUT050@'$INPUT050'@g' \
+-e 's@INPUT051@'$INPUT051'@g' \
+-e 's@INPUT052@'$INPUT052'@g' \
+-e 's@INPUT053@'$INPUT053'@g' \
+-e 's@INPUT054@'$INPUT054'@g' \
+-e 's@INPUT055@'$INPUT055'@g' \
+-e 's@INPUT056@'$INPUT056'@g' \
+-e 's@INPUT057@'$INPUT057'@g' \
+-e 's@INPUT058@'$INPUT058'@g' \
+-e 's@INPUT059@'$INPUT059'@g' \
+-e 's@INPUT060@'$INPUT060'@g' \
+-e 's@INPUT061@'$INPUT061'@g' \
+-e 's@INPUT062@'$INPUT062'@g' \
+-e 's@INPUT063@'$INPUT063'@g' \
+-e 's@INPUT064@'$INPUT064'@g' \
+-e 's@INPUT065@'$INPUT065'@g' \
+-e 's@INPUT066@'$INPUT066'@g' \
+-e 's@INPUT067@'$INPUT067'@g' \
+-e 's@INPUT068@'$INPUT068'@g' \
+-e 's@INPUT069@'$INPUT069'@g' \
+-e 's@INPUT070@'$INPUT070'@g' \
+-e 's@INPUT071@'$INPUT071'@g' \
+-e 's@INPUT072@'$INPUT072'@g' \
+-e 's@INPUT073@'$INPUT073'@g' \
+-e 's@INPUT074@'$INPUT074'@g' \
+-e 's@INPUT075@'$INPUT075'@g' \
+-e 's@INPUT076@'$INPUT076'@g' \
+-e 's@INPUT077@'$INPUT077'@g' \
+-e 's@INPUT078@'$INPUT078'@g' \
+-e 's@INPUT079@'$INPUT079'@g' \
+-e 's@INPUT080@'$INPUT080'@g' \
+-e 's@INPUT081@'$INPUT081'@g' \
+-e 's@INPUT082@'$INPUT082'@g' \
+-e 's@INPUT083@'$INPUT083'@g' \
+-e 's@INPUT084@'$INPUT084'@g' \
+-e 's@INPUT085@'$INPUT085'@g' \
+-e 's@INPUT086@'$INPUT086'@g' \
+-e 's@INPUT087@'$INPUT087'@g' \
+-e 's@INPUT088@'$INPUT088'@g' \
+-e 's@INPUT089@'$INPUT089'@g' \
+-e 's@INPUT090@'$INPUT090'@g' \
+-e 's@INPUT091@'$INPUT091'@g' \
+-e 's@INPUT092@'$INPUT092'@g' \
+-e 's@INPUT093@'$INPUT093'@g' \
+-e 's@INPUT094@'$INPUT094'@g' \
+-e 's@INPUT095@'$INPUT095'@g' \
+-e 's@INPUT096@'$INPUT096'@g' \
+-e 's@INPUT097@'$INPUT097'@g' \
+-e 's@INPUT098@'$INPUT098'@g' \
+-e 's@INPUT099@'$INPUT099'@g' \
+-e 's@INPUT100@'$INPUT100'@g' \
+-e 's@INPUT101@'$INPUT101'@g' \
+-e 's@INPUT102@'$INPUT102'@g' \
+-e 's@INPUT103@'$INPUT103'@g' \
+-e 's@INPUT104@'$INPUT104'@g' \
+-e 's@INPUT105@'$INPUT105'@g' \
+-e 's@INPUT106@'$INPUT106'@g' \
+-e 's@INPUT107@'$INPUT107'@g' \
+-e 's@INPUT108@'$INPUT108'@g' \
+-e 's@INPUT109@'$INPUT109'@g' \
+-e 's@INPUT110@'$INPUT110'@g' \
+-e 's@INPUT111@'$INPUT111'@g' \
+-e 's@INPUT112@'$INPUT112'@g' \
+-e 's@INPUT113@'$INPUT113'@g' \
+-e 's@INPUT114@'$INPUT114'@g' \
+-e 's@INPUT115@'$INPUT115'@g' \
+-e 's@INPUT116@'$INPUT116'@g' \
+-e 's@INPUT117@'$INPUT117'@g' \
+-e 's@INPUT118@'$INPUT118'@g' \
+-e 's@INPUT119@'$INPUT119'@g' \
+-e 's@INPUT120@'$INPUT120'@g' \
+-e 's@INPUT121@'$INPUT121'@g' \
+-e 's@INPUT122@'$INPUT122'@g' \
+-e 's@INPUT123@'$INPUT123'@g' \
+-e 's@INPUT124@'$INPUT124'@g' \
+-e 's@INPUT125@'$INPUT125'@g' \
+-e 's@INPUT126@'$INPUT126'@g' \
+-e 's@INPUT127@'$INPUT127'@g' \
+-e 's@INPUT128@'$INPUT128'@g' \
+-e 's@INPUT129@'$INPUT129'@g' \
+-e 's@INPUT130@'$INPUT130'@g' \
+-e 's@INPUT131@'$INPUT131'@g' \
+-e 's@INPUT132@'$INPUT132'@g' \
+-e 's@INPUT133@'$INPUT133'@g' \
+-e 's@INPUT134@'$INPUT134'@g' \
+-e 's@INPUT135@'$INPUT135'@g' \
+-e 's@INPUT136@'$INPUT136'@g' \
+-e 's@INPUT137@'$INPUT137'@g' \
+-e 's@INPUT138@'$INPUT138'@g' \
+-e 's@INPUT139@'$INPUT139'@g' \
+-e 's@INPUT140@'$INPUT140'@g' \
+-e 's@INPUT141@'$INPUT141'@g' \
+-e 's@INPUT142@'$INPUT142'@g' \
+-e 's@INPUT143@'$INPUT143'@g' \
+-e 's@INPUT144@'$INPUT144'@g' \
+-e 's@INPUT145@'$INPUT145'@g' \
+-e 's@INPUT146@'$INPUT146'@g' \
+-e 's@INPUT147@'$INPUT147'@g' \
+-e 's@INPUT148@'$INPUT148'@g' \
+-e 's@INPUT149@'$INPUT149'@g' \
+-e 's@INPUT150@'$INPUT150'@g' \
+-e 's@INPUT151@'$INPUT151'@g' \
+-e 's@INPUT152@'$INPUT152'@g' \
+-e 's@INPUT153@'$INPUT153'@g' \
+-e 's@INPUT154@'$INPUT154'@g' \
+-e 's@INPUT155@'$INPUT155'@g' \
+-e 's@INPUT156@'$INPUT156'@g' \
+-e 's@INPUT157@'$INPUT157'@g' \
+-e 's@INPUT158@'$INPUT158'@g' \
+-e 's@INPUT159@'$INPUT159'@g' \
+-e 's@INPUT160@'$INPUT160'@g' \
+-e 's@INPUT161@'$INPUT161'@g' \
+-e 's@INPUT162@'$INPUT162'@g' \
+-e 's@INPUT163@'$INPUT163'@g' \
+-e 's@INPUT164@'$INPUT164'@g' \
+-e 's@INPUT165@'$INPUT165'@g' \
+-e 's@INPUT166@'$INPUT166'@g' \
+-e 's@INPUT167@'$INPUT167'@g' \
+-e 's@INPUT168@'$INPUT168'@g' \
+-e 's@INPUT169@'$INPUT169'@g' \
+-e 's@INPUT170@'$INPUT170'@g' \
+-e 's@INPUT171@'$INPUT171'@g' \
+-e 's@INPUT172@'$INPUT172'@g' \
+-e 's@INPUT173@'$INPUT173'@g' \
+-e 's@INPUT174@'$INPUT174'@g' \
+-e 's@INPUT175@'$INPUT175'@g' \
+-e 's@INPUT176@'$INPUT176'@g' \
+-e 's@INPUT177@'$INPUT177'@g' \
+-e 's@INPUT178@'$INPUT178'@g' \
+-e 's@INPUT179@'$INPUT179'@g' \
+-e 's@INPUT180@'$INPUT180'@g' \
+-e 's@INPUT181@'$INPUT181'@g' \
+-e 's@INPUT182@'$INPUT182'@g' \
+-e 's@INPUT183@'$INPUT183'@g' \
+-e 's@INPUT184@'$INPUT184'@g' \
+-e 's@INPUT185@'$INPUT185'@g' \
+-e 's@INPUT186@'$INPUT186'@g' \
+-e 's@INPUT187@'$INPUT187'@g' \
+-e 's@INPUT188@'$INPUT188'@g' \
+-e 's@INPUT189@'$INPUT189'@g' \
+-e 's@INPUT190@'$INPUT190'@g' \
+-e 's@INPUT191@'$INPUT191'@g' \
+-e 's@INPUT192@'$INPUT192'@g' \
+-e 's@INPUT193@'$INPUT193'@g' \
+-e 's@INPUT194@'$INPUT194'@g' \
+-e 's@INPUT195@'$INPUT195'@g' \
+-e 's@INPUT196@'$INPUT196'@g' \
+-e 's@INPUT197@'$INPUT197'@g' \
+-e 's@INPUT198@'$INPUT198'@g' \
+-e 's@INPUT199@'$INPUT199'@g' \
+-e 's@INPUT200@'$INPUT200'@g' \
+-e 's@INPUT201@'$INPUT201'@g' \
+-e 's@INPUT202@'$INPUT202'@g' \
+-e 's@INPUT203@'$INPUT203'@g' \
+-e 's@INPUT204@'$INPUT204'@g' \
+-e 's@INPUT205@'$INPUT205'@g' \
+-e 's@INPUT206@'$INPUT206'@g' \
+-e 's@INPUT207@'$INPUT207'@g' \
+-e 's@INPUT208@'$INPUT208'@g' \
+-e 's@INPUT209@'$INPUT209'@g' \
+-e 's@INPUT210@'$INPUT210'@g' \
+-e 's@INPUT211@'$INPUT211'@g' \
+-e 's@INPUT212@'$INPUT212'@g' \
+-e 's@INPUT213@'$INPUT213'@g' \
+-e 's@INPUT214@'$INPUT214'@g' \
+-e 's@INPUT215@'$INPUT215'@g' \
+-e 's@INPUT216@'$INPUT216'@g' \
+-e 's@INPUT217@'$INPUT217'@g' \
+<${TEMPLATE}.fsf> ${NEWFILE}.fsf
+
+#run feat file
+if [ -d $OUTPUT.gfeat ]; then
+	echo "directory exists..."
+else
+	$FSLDIR/bin/feat ${NEWFILE}.fsf
+fi
+
+# cd ${OUTPUT}.gfeat/cope1.feat
+# randomise -i filtered_func_data.nii.gz -o randomise_out -d design.mat -t design.con -m mask.nii.gz -n 10000 -T
+
+
+cd $OUTPUT.gfeat
+#rm -f cope1.feat/filtered_func_data.nii.gz
+rm -f cope1.feat/stats/res4d.nii.gz
+rm -f cope1.feat/var_filtered_func_data.nii.gz
+
+
+
+
+# -- END USER SCRIPT -- #
+
+# **********************************************************
+# -- BEGIN POST-USER -- 
+echo "----JOB [$JOB_NAME.$JOB_ID] STOP [`date`]----" 
+#OUTDIR=${OUTDIR:-$EXPERIMENT/Analysis} 
+mv $HOME/$JOB_NAME.$JOB_ID.out $OUTDIR/$JOB_NAME.$JOB_ID.out	 
+RETURNCODE=${RETURNCODE:-0}
+exit $RETURNCODE
+fi
+# -- END POST USER-- 
