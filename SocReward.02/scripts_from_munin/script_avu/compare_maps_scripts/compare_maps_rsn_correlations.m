@@ -1,0 +1,46 @@
+function compare_maps_rsn_correlations(groupica)
+
+maindir = pwd;
+
+groupicadir = fullfile(maindir,groupica);
+mask = fullfile(maindir, 'intersect_mask.nii.gz');
+melodic_IC = fullfile(groupicadir,'melodic_IC.nii.gz');
+split_melodic_IC = fullfile(groupicadir,'IC_');
+fslsplit_cmd = ['fslsplit ' melodic_IC ' ' split_melodic_IC ' -t'];
+system(fslsplit_cmd);
+nvols_cmd = ['fslnvols ' melodic_IC ];
+[~,nvols] = system(nvols_cmd);
+nvols = str2double(nvols);
+corr_mat = zeros(nvols,10);
+for v = 1:nvols
+    v_str = sprintf('%04d',v-1);
+    for i = 1:10
+        ic = i - 1;
+        i_str = sprintf('%04d',ic);
+        RSN = fullfile(maindir,'RSNmaps',['PNAS_Smith2009_rsn_' i_str '.nii.gz']);
+        split_melodic_IC_file = fullfile(groupicadir, ['IC_' v_str '.nii.gz']);
+        status = 1; %keep doing it till you get it right, motherfucker.
+        while status
+            sys_cmd = sprintf('sh compute_spatialcorr.sh %s %s %s',split_melodic_IC_file, RSN, mask);
+            [status,spatial_corr] = system(sys_cmd);
+            if status
+                fprintf('something got fucked up looking at RSN %d on IC %d\nrecalculating...\n\n',i,v);
+            end
+            spatial_corr_num = str2double(spatial_corr);
+            if isnan(spatial_corr_num)
+                disp('still failed because of nans\nrevalculating..\n\n')
+                status = 1;
+            end
+        end
+        delete('demeaned*');
+        corr_mat(v,i) = spatial_corr_num;
+    end
+    fprintf('%3.3f%% completed...\n',100*(v/nvols));
+end
+fname = sprintf('map_summary_%s.txt',groupica);
+fid = fopen(fname,'w');
+fprintf(fid,'ICNUM \tRSN01 \tRSN02 \tRSN03 \tRSN04 \tRSN05 \tRSN06 \tRSN07 \tRSN08 \tRSN09 \tRSN10\n');
+for v = 1:nvols
+    fprintf(fid,'%02d \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f \t%3.3f\n', v, corr_mat(v,:));
+end
+fclose(fid);
